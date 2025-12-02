@@ -1,137 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Seller Dashboard - BudgetSmart</title>
-  <link rel="stylesheet" href="style.css"/>
+  <title>BudgetSmart - Add Your Store</title>
   <style>
-    .tabs { display: flex; background: #f1f1f1; border-radius: 10px; overflow: hidden; margin-bottom: 30px; }
-    .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; transition: 0.3s; }
-    .tab.active { background: #007bff; color: white; }
-    .tab:hover:not(.active) { background: #ddd; }
-    .tab-content { display: none; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-    .tab-content.active { display: block; }
-    .success { color:green; font-weight:bold; text-align:center; margin-top:15px; }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
+    body { background:#f4f7fa; color:#333; padding:20px; }
+    .container { max-width:600px; margin:0 auto; background:#fff; border-radius:15px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.1); }
+    header { background:#007bff; color:#fff; padding:30px; text-align:center; }
+    header h1 { font-size:28px; }
+    .tabs { display:flex; background:#f0f0f0; }
+    .tab { flex:1; padding:15px; text-align:center; cursor:pointer; font-weight:bold; }
+    .tab.active { background:#007bff; color:#fff; }
+    .tab-content { padding:30px; display:none; }
+    .tab-content.active { display:block; }
+    input, button { width:100%; padding:14px; margin:10px 0; border-radius:8px; border:1px solid #ccc; font-size:16px; }
+    input:focus { outline:none; border-color:#007bff; }
+    button { background:#007bff; color:#fff; border:none; cursor:pointer; font-weight:bold; transition:0.3s; }
+    button:hover { background:#0056b3; }
+    .success { margin-top:15px; font-size:18px; text-align:center; min-height:30px; }
+    .debug-btn { margin-top:20px; background:#28a745; }
+    .debug-btn:hover { background:#1e7e34; }
+    #debugList { margin-top:15px; background:#f8f9fa; padding:15px; border-radius:8px; max-height:300px; overflow-y:auto; font-size:14px; }
+    @media (max-width:500px) { .container { margin:10px; } }
   </style>
 </head>
-  async function checkMyProducts() {
-  const websiteInput = document.getElementById('website')?.value || 
-                       document.getElementById('manualSellerName')?.value || 
-                       prompt("Enter your store name or website to check:");
-  
-  if (!websiteInput) return;
-  
-  try {
-    const res = await fetch(`/api/debug?seller=${encodeURIComponent(websiteInput.trim())}`);
-    const items = await res.json();
-    
-    if (items.length === 0) {
-      document.getElementById('myProductsList').innerHTML = 
-        `<span style="color:orange;">No products found yet. If you just connected, wait 1–2 minutes and try again.</span>`;
-    } else {
-      document.getElementById('myProductsList').innerHTML = 
-        `<span style="color:green;">Found ${items.length} products!</span><br>` +
-        items.slice(0, 10).map(i => `• ${i.name} — ₦${i.price.toLocaleString()}`).join('<br>');
-    }
-  } catch (err) {
-    document.getElementById('myProductsList').innerHTML = 
-      '<span style="color:red;">Error checking — try again</span>';
-  }
-}
 <body>
-  <div class="container">
-    <h1 style="text-align:center; margin-bottom:10px;">Seller Dashboard</h1>
-    <p style="text-align:center; color:#666; margin-bottom:30px;">Choose how you want to add your products</p>
 
-    <div class="tabs">
-      <div class="tab active" onclick="openTab('website')">Add via Website</div>
-      <div class="tab" onclick="openTab('manual')">Add via Image + Price</div>
-    </div>
+<div class="container">
+  <header>
+    <h1>BudgetSmart Nigeria</h1>
+    <p>Add your store — reach thousands of smart buyers!</p>
+  </header>
 
-    <!-- TAB 1: Website Only -->
-    <div id="website" class="tab-content active">
-      <h2>Connect Your Online Store</h2>
-      <p>We’ll automatically list your products later</p>
-      <form id="websiteForm">
-        <input type="text" name="sellerName" placeholder="Store / Seller Name" required/>
-        <input type="text" name="website" id="website" placeholder="mchris.ng or https://yourstore.com" required/>
-        <button type="submit" class="btn btn-primary">Connect Store</button>
-      </form>
-      <p id="msg1" class="success"></p>
-    </div>
-
-    <!-- TAB 2: Manual Upload -->
-    <div id="manual" class="tab-content">
-      <h2>Upload Item Manually</h2>
-      <p>Add one item at a time with photo and price</p>
-      <form id="manualForm" enctype="multipart/form-data">
-         <input type="text" name="sellerName" id="manualSellerName" placeholder="Your Store / Name" required/>
-        <input type="text" name="itemName" placeholder="Item Name (e.g. Wireless Earbuds)" required/>
-        <input type="number" step="0.01" name="itemPrice" placeholder="Price ($)" required/>
-        <input type="file" name="image" accept="image/*" required/>
-        <button type="submit" class="btn btn-success">Add Item</button>
-      </form>
-      <p id="msg2" class="success"></p>
-    </div>
+  <div class="tabs">
+    <div class="tab active" onclick="openTab('website')">Add via Website</div>
+    <div class="tab" onclick="openTab('manual')">Add via Image + Price</div>
   </div>
-<div style="margin: 20px 0; text-align: center;">
-  <button onclick="checkMyProducts()" class="btn btn-secondary">Check My Added Products</button>
-  <div id="myProductsList" style="margin-top: 15px; color: green; font-weight: bold;"></div>
+
+  <!-- TAB 1: Connect Website -->
+  <div id="website" class="tab-content active">
+    <h2>Connect Your Online Store</h2>
+    <p>We’ll automatically add your products in the background</p>
+    <form id="websiteForm">
+      <input type="text" name="sellerName" id="sellerName" placeholder="Your Store Name (e.g. M-Chris Phones)" required />
+      <input type="text" name="website" id="websiteInput" placeholder="mchris.ng or https://yourstore.com" required />
+      <button type="submit">Connect Store</button>
+    </form>
+    <p id="msg1" class="success"></p>
+  </div>
+
+  <!-- TAB 2: Manual Upload -->
+  <div id="manual" class="tab-content">
+    <h2>Add Item Manually</h2>
+    <p>Upload photo + price instantly</p>
+    <form id="manualForm" enctype="multipart/form-data">
+      <input type="text" name="sellerName" placeholder="Your Store Name" required />
+      <input type="text" name="itemName" placeholder="Item Name (e.g. iPhone 15 Pro)" required />
+      <input type="number" name="itemPrice" placeholder="Price in ₦ (e.g. 850000)" required />
+      <input type="file" name="image" accept="image/*" required />
+      <button type="submit">Add Item Now</button>
+    </form>
+    <p id="msg2" class="success"></p>
+  </div>
+
+  <!-- Check Added Products Button -->
+  <div style="padding:20px; text-align:center;">
+    <button class="debug-btn" onclick="checkProducts()">Check My Added Products</button>
+    <div id="debugList"></div>
+  </div>
 </div>
-  <script>
-    function openTab(tabName) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      document.querySelector(`.tab[onclick="openTab('${tabName}')"]`).classList.add('active');
-      document.getElementById(tabName).classList.add('active');
-    }
 
-  // Form 1: Website Only — Accepts ANY domain (.ng, .com, etc.)
-document.getElementById('websiteForm').onsubmit = async (e) => {
+<script>
+function openTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(tabName).classList.add('active');
+  document.querySelector(`.tab[onclick="openTab('${tabName}')"]`).classList.add('active');
+}
+
+function showMsg(id, text, color = 'green') {
+  const el = document.getElementById(id);
+  el.innerHTML = `<span style="color:${color}; font-weight:bold;">${text}</span>`;
+  if (color === 'green') setTimeout(() => el.textContent = '', 8000);
+}
+
+// Website Form — accepts ANY domain (.ng, .com, etc.)
+document.getElementById('websiteForm').onsubmit = async e => {
   e.preventDefault();
-  
-  const sellerName = document.getElementById('sellerName').value.trim(); // Assuming you add id="sellerName" to the input
-  let website = document.getElementById('website').value.trim();
+  showMsg('msg1', 'Connecting...', 'blue');
 
-  // Clear any old messages
-  document.getElementById('msg1').textContent = '';
+  const sellerName = document.getElementById('sellerName').value.trim();
+  let website = document.getElementById('websiteInput').value.trim();
 
-  if (!sellerName || !website) {
-    document.getElementById('msg1').innerHTML = '<span style="color:red;">Please fill both fields!</span>';
-    return;
-  }
+  if (!sellerName || !website) return showMsg('msg1', 'Please fill both fields', 'red');
+  if (!website.includes('.')) return showMsg('msg1', 'Enter a valid website (e.g. mchris.ng)', 'red');
 
-  // Basic validation: Must have a dot (domain check)
-  if (!website.includes('.')) {
-    document.getElementById('msg1').innerHTML = '<span style="color:red;">Please enter a valid website (e.g., mchris.ng)</span>';
-    return;
-  }
+  // Clean & fix URL
+  website = website.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').trim();
+  website = 'https://' + website.replace(/\/+$/, '');
 
-  // Auto-fix URL to full format (adds https:// if missing)
-  website = website.toLowerCase().replace(/^www\./, ''); // Remove leading www.
-  if (!website.startsWith('http://') && !website.startsWith('https://')) {
-    website = 'https://' + website;
-  }
-  // Remove trailing slash
-  website = website.replace(/\/+$/, '');
-
-  console.log('Submitting:', { sellerName, website }); // For debugging
-
-  const formData = new FormData();
-  formData.append('sellerName', sellerName);
-  formData.append('website', website);
-  formData.append('type', 'website');
+  const fd = new FormData();
+  fd.append('sellerName', sellerName);
+  fd.append('website', website);
+  fd.append('type', 'website');
 
   try {
-    const res = await fetch('/api/seller', { method: 'POST', body: formData });
+    const res = await fetch('/api/seller', { method: 'POST', body: fd });
     const json = await res.json();
-    document.getElementById('msg1').innerHTML = json.success 
-      ? `<span style="color:green;">${json.message}</span>` 
-      : `<span style="color:red;">${json.error || 'Try again'}</span>`;
+    showMsg('msg1', json.success ? json.message : json.error || 'Failed', json.success ? 'green' : 'red');
     if (json.success) e.target.reset();
   } catch (err) {
-    document.getElementById('msg1').innerHTML = '<span style="color:red;">Connection error — try again!</span>';
-    console.error('Fetch error:', err);
+    showMsg('msg1', 'No internet — try again', 'red');
   }
 };
+
+// Manual Upload Form
+document.getElementById('manualForm').onsubmit = async e => {
+  e.preventDefault();
+  showMsg('msg2', 'Uploading item...', 'blue');
+
+  const fd = new FormData(e.target);
+  fd.append('type', 'manual');
+
+  try {
+    const res = await fetch('/api/seller', { method: 'POST', body: fd });
+    const json = await res.json();
+    showMsg('msg2', json.success ? 'Item added instantly!' : json.error || 'Failed', json.success ? 'green' : 'red');
+    if (json.success) e.target.reset();
+  } catch (err) {
+    showMsg('msg2', 'Upload failed — check connection', 'red');
+  }
+};
+
+// Check what products are in the database
+async function checkProducts() {
+  const input = prompt("Enter store name or website (e.g. mchris.ng):");
+  if (!input) return;
+
+  document.getElementById('debugList').innerHTML = 'Loading...';
+  try {
+    const res = await fetch(`/api/debug?q=${encodeURIComponent(input.trim())}`);
+    const items = await res.json();
+    if (items.length === 0) {
+      document.getElementById('debugList').innerHTML = '<span style="color:orange;">No products found yet. Wait 1–2 minutes after connecting.</span>';
+    } else {
+      const list = items.map(i => `• ${i.name} — ₦${Number(i.price).toLocaleString()}`).join('<br>');
+      document.getElementById('debugList').innerHTML = `<span style="color:green;">Found ${items.length} products!</span><br>${list}`;
+    }
+  } catch (err) {
+    document.getElementById('debugList').innerHTML = '<span style="color:red;">Error checking</span>';
+  }
+}
+</script>
+
+</body>
+</html>
