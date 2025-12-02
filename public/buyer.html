@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Buyer - BudgetSmart</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1 style="text-align:center;color:#007bff">Find Items Within Your Budget</h1>
+
+    <div style="background:white;padding:25px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.1);margin-bottom:30px;">
+      <input type="text" id="items" placeholder="Enter items (comma-separated) e.g. milk, bread, eggs" style="margin-bottom:15px;"/>
+      <input type="number" id="budget" placeholder="Your total budget ($)" required/>
+      <button onclick="search()" class="btn btn-primary" style="margin-top:15px;">Search Smart</button>
+    </div>
+
+    <div id="results"></div>
+  </div>
+
+  <script>
+    async function search() {
+      const items = document.getElementById('items').value.split(',').map(s => s.trim()).filter(Boolean);
+      const budget = document.getElementById('budget').value;
+
+      if (items.length === 0 || !budget) return alert("Please fill all fields");
+
+      const res = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items, budget })
+      });
+      const data = await res.json();
+
+      const container = document.getElementById('results');
+      container.innerHTML = '';
+
+      const categories = [
+        { title: "Cheaper Options (Save money!)", data: data.cheaper, color: "#28a745" },
+        { title: "Exact Match", data: data.exact, color: "#007bff" },
+        { title: "Slightly Above Budget", data: data.above, color: "#dc3545" }
+      ];
+
+      categories.forEach(cat => {
+        if (cat.data.length > 0) {
+          const div = document.createElement('div');
+          div.innerHTML = `<h2 style="color:${cat.color}">${cat.title}</h2>`;
+          const grid = document.createElement('div');
+          grid.className = 'grid';
+
+          cat.data.forEach(opt => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            let itemsHtml = opt.result.items.map(i => `
+              <p><strong>${i.item_name}</strong> - $${i.price}</p>
+              ${i.image ? `<img src="${i.image}" alt="${i.item_name}"/>` : ''}
+              <p>From: <a href="${i.website}" target="_blank">${i.seller_name}</a></p>
+            `).join('<hr>');
+            card.innerHTML = `
+              <h3>Total: $${opt.result.totalPrice}</h3>
+              ${opt.savings ? `<p style="color:green">Save: $${opt.savings}</p>` : ''}
+              ${opt.extra ? `<p style="color:red">+$${opt.extra} over</p>` : ''}
+              ${itemsHtml}
+            `;
+            grid.appendChild(card);
+          });
+          div.appendChild(grid);
+          container.appendChild(div);
+        }
+      });
+
+      if (container.innerHTML === '') {
+        container.innerHTML = '<p style="text-align:center;color:#888">No items found for your search. Try adding more items first!</p>';
+      }
+    }
+  </script>
+</body>
+</html>
+
