@@ -17,7 +17,19 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const db = new sqlite3.Database('database.db', (err) => {
   if (err) console.error(err);
 });
-
+// DEBUG
+app.get('/api/debug', (req, res) => {
+  const seller = req.query.seller || '';
+  db.all(`
+    SELECT i.name, i.price, s.name as seller 
+    FROM items i 
+    JOIN sellers s ON i.seller_id = s.id 
+    WHERE s.name LIKE ? OR s.website LIKE ?
+    LIMIT 20
+  `, [`%${seller}%`, `%${seller}%`], (err, rows) => {
+    res.json(err ? [] : rows);
+  });
+});
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS sellers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
