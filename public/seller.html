@@ -31,7 +31,7 @@
       <p>We’ll automatically list your products later</p>
       <form id="websiteForm">
         <input type="text" name="sellerName" placeholder="Store / Seller Name" required/>
-        <input type="url" name="website" placeholder="https://yourstore.com" required/>
+        <input type="text" name="website" id="website" placeholder="mchris.ng or https://yourstore.com" required/>
         <button type="submit" class="btn btn-primary">Connect Store</button>
       </form>
       <p id="msg1" class="success"></p>
@@ -42,7 +42,7 @@
       <h2>Upload Item Manually</h2>
       <p>Add one item at a time with photo and price</p>
       <form id="manualForm" enctype="multipart/form-data">
-        <input type="text" name="website" id="website" placeholder="mchris.ng or https://yourstore.com" required/>
+         <input type="text" name="sellerName" id="manualSellerName" placeholder="Your Store / Name" required/>
         <input type="text" name="itemName" placeholder="Item Name (e.g. Wireless Earbuds)" required/>
         <input type="number" step="0.01" name="itemPrice" placeholder="Price ($)" required/>
         <input type="file" name="image" accept="image/*" required/>
@@ -60,29 +60,36 @@
       document.getElementById(tabName).classList.add('active');
     }
 
-    // Form 1: Website Only — accepts ANY domain
+  // Form 1: Website Only — Accepts ANY domain (.ng, .com, etc.)
 document.getElementById('websiteForm').onsubmit = async (e) => {
   e.preventDefault();
   
-  let sellerName = document.getElementById('sellerName').value.trim();
+  const sellerName = document.getElementById('sellerName').value.trim(); // Assuming you add id="sellerName" to the input
   let website = document.getElementById('website').value.trim();
+
+  // Clear any old messages
+  document.getElementById('msg1').textContent = '';
 
   if (!sellerName || !website) {
     document.getElementById('msg1').innerHTML = '<span style="color:red;">Please fill both fields!</span>';
     return;
   }
 
-  // SUPER SMART URL FIXER — works with everything
-  website = website.toLowerCase().trim();
+  // Basic validation: Must have a dot (domain check)
   if (!website.includes('.')) {
-    document.getElementById('msg1').innerHTML = '<span style="color:red;">Please enter a valid website (example: mchris.ng)</span>';
+    document.getElementById('msg1').innerHTML = '<span style="color:red;">Please enter a valid website (e.g., mchris.ng)</span>';
     return;
   }
+
+  // Auto-fix URL to full format (adds https:// if missing)
+  website = website.toLowerCase().replace(/^www\./, ''); // Remove leading www.
   if (!website.startsWith('http://') && !website.startsWith('https://')) {
     website = 'https://' + website;
   }
-  // Remove trailing slash if any
+  // Remove trailing slash
   website = website.replace(/\/+$/, '');
+
+  console.log('Submitting:', { sellerName, website }); // For debugging
 
   const formData = new FormData();
   formData.append('sellerName', sellerName);
@@ -92,31 +99,12 @@ document.getElementById('websiteForm').onsubmit = async (e) => {
   try {
     const res = await fetch('/api/seller', { method: 'POST', body: formData });
     const json = await res.json();
-    
     document.getElementById('msg1').innerHTML = json.success 
       ? `<span style="color:green;">${json.message}</span>` 
       : `<span style="color:red;">${json.error || 'Try again'}</span>`;
-      
-    if (json.success) {
-      e.target.reset();
-      setTimeout(() => document.getElementById('msg1').textContent = '', 8000);
-    }
+    if (json.success) e.target.reset();
   } catch (err) {
-    document.getElementById('msg1').innerHTML = '<span style="color:red;">No internet — check connection</span>';
+    document.getElementById('msg1').innerHTML = '<span style="color:red;">Connection error — try again!</span>';
+    console.error('Fetch error:', err);
   }
 };
-
-    // Form 2: Manual Upload
-    document.getElementById('manualForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      formData.append('type', 'manual');
-
-      const res = await fetch('/api/seller', { method: 'POST', body: formData });
-      const json = await res.json();
-      document.getElementById('msg2').textContent = json.success ? "Item added successfully!" : json.error;
-      if (json.success) e.target.reset();
-    };
-  </script>
-</body>
-</html>
