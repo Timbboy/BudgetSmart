@@ -60,17 +60,51 @@
       document.getElementById(tabName).classList.add('active');
     }
 
-    // Form 1: Website Only
-    document.getElementById('websiteForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      formData.append('type', 'website');
+    // Form 1: Website Only — accepts ANY domain
+document.getElementById('websiteForm').onsubmit = async (e) => {
+  e.preventDefault();
+  
+  let sellerName = document.getElementById('sellerName').value.trim();
+  let website = document.getElementById('website').value.trim();
 
-      const res = await fetch('/api/seller', { method: 'POST', body: formData });
-      const json = await res.json();
-      document.getElementById('msg1').textContent = json.success ? "Store connected! We'll fetch your items soon" : json.error;
-      if (json.success) e.target.reset();
-    };
+  if (!sellerName || !website) {
+    document.getElementById('msg1').innerHTML = '<span style="color:red;">Please fill both fields!</span>';
+    return;
+  }
+
+  // SUPER SMART URL FIXER — works with everything
+  website = website.toLowerCase().trim();
+  if (!website.includes('.')) {
+    document.getElementById('msg1').innerHTML = '<span style="color:red;">Please enter a valid website (example: mchris.ng)</span>';
+    return;
+  }
+  if (!website.startsWith('http://') && !website.startsWith('https://')) {
+    website = 'https://' + website;
+  }
+  // Remove trailing slash if any
+  website = website.replace(/\/+$/, '');
+
+  const formData = new FormData();
+  formData.append('sellerName', sellerName);
+  formData.append('website', website);
+  formData.append('type', 'website');
+
+  try {
+    const res = await fetch('/api/seller', { method: 'POST', body: formData });
+    const json = await res.json();
+    
+    document.getElementById('msg1').innerHTML = json.success 
+      ? `<span style="color:green;">${json.message}</span>` 
+      : `<span style="color:red;">${json.error || 'Try again'}</span>`;
+      
+    if (json.success) {
+      e.target.reset();
+      setTimeout(() => document.getElementById('msg1').textContent = '', 8000);
+    }
+  } catch (err) {
+    document.getElementById('msg1').innerHTML = '<span style="color:red;">No internet — check connection</span>';
+  }
+};
 
     // Form 2: Manual Upload
     document.getElementById('manualForm').onsubmit = async (e) => {
