@@ -15,6 +15,30 @@
     .success { color:green; font-weight:bold; text-align:center; margin-top:15px; }
   </style>
 </head>
+  async function checkMyProducts() {
+  const websiteInput = document.getElementById('website')?.value || 
+                       document.getElementById('manualSellerName')?.value || 
+                       prompt("Enter your store name or website to check:");
+  
+  if (!websiteInput) return;
+  
+  try {
+    const res = await fetch(`/api/debug?seller=${encodeURIComponent(websiteInput.trim())}`);
+    const items = await res.json();
+    
+    if (items.length === 0) {
+      document.getElementById('myProductsList').innerHTML = 
+        `<span style="color:orange;">No products found yet. If you just connected, wait 1–2 minutes and try again.</span>`;
+    } else {
+      document.getElementById('myProductsList').innerHTML = 
+        `<span style="color:green;">Found ${items.length} products!</span><br>` +
+        items.slice(0, 10).map(i => `• ${i.name} — ₦${i.price.toLocaleString()}`).join('<br>');
+    }
+  } catch (err) {
+    document.getElementById('myProductsList').innerHTML = 
+      '<span style="color:red;">Error checking — try again</span>';
+  }
+}
 <body>
   <div class="container">
     <h1 style="text-align:center; margin-bottom:10px;">Seller Dashboard</h1>
@@ -51,7 +75,10 @@
       <p id="msg2" class="success"></p>
     </div>
   </div>
-
+<div style="margin: 20px 0; text-align: center;">
+  <button onclick="checkMyProducts()" class="btn btn-secondary">Check My Added Products</button>
+  <div id="myProductsList" style="margin-top: 15px; color: green; font-weight: bold;"></div>
+</div>
   <script>
     function openTab(tabName) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
