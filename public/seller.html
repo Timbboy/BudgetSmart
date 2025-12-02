@@ -6,24 +6,23 @@
   <title>BudgetSmart - Add Your Store</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
-    body { background:#f4f7fa; color:#333; padding:20px; }
+    body { background:#f4f7fa; color:#333; padding:20px; line-height:1.5; }
     .container { max-width:600px; margin:0 auto; background:#fff; border-radius:15px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.1); }
-    header { background:#007bff; color:#fff; padding:30px; text-align:center; }
-    header h1 { font-size:28px; }
+    header { background:#007bff; color:#fff; padding:30px 20px; text-align:center; }
+    header h1 { font-size:28px; margin-bottom:8px; }
     .tabs { display:flex; background:#f0f0f0; }
-    .tab { flex:1; padding:15px; text-align:center; cursor:pointer; font-weight:bold; }
+    .tab { flex:1; padding:15px; text-align:center; cursor:pointer; font-weight:bold; transition:0.3s; }
     .tab.active { background:#007bff; color:#fff; }
     .tab-content { padding:30px; display:none; }
     .tab-content.active { display:block; }
     input, button { width:100%; padding:14px; margin:10px 0; border-radius:8px; border:1px solid #ccc; font-size:16px; }
     input:focus { outline:none; border-color:#007bff; }
-    button { background:#007bff; color:#fff; border:none; cursor:pointer; font-weight:bold; transition:0.3s; }
+    button { background:#007bff; color:#fff; border:none; cursor:pointer; font-weight:bold; }
     button:hover { background:#0056b3; }
-    .success { margin-top:15px; font-size:18px; text-align:center; min-height:30px; }
-    .debug-btn { margin-top:20px; background:#28a745; }
+    .success { margin-top:15px; font-size:18px; text-align:center; min-height:30px; font-weight:bold; }
+    .debug-btn { background:#28a745; margin-top:20px; }
     .debug-btn:hover { background:#1e7e34; }
     #debugList { margin-top:15px; background:#f8f9fa; padding:15px; border-radius:8px; max-height:300px; overflow-y:auto; font-size:14px; }
-    @media (max-width:500px) { .container { margin:10px; } }
   </style>
 </head>
 <body>
@@ -65,7 +64,7 @@
     <p id="msg2" class="success"></p>
   </div>
 
-  <!-- Check Added Products Button -->
+  <!-- Check Added Products -->
   <div style="padding:20px; text-align:center;">
     <button class="debug-btn" onclick="checkProducts()">Check My Added Products</button>
     <div id="debugList"></div>
@@ -82,11 +81,11 @@ function openTab(tabName) {
 
 function showMsg(id, text, color = 'green') {
   const el = document.getElementById(id);
-  el.innerHTML = `<span style="color:${color}; font-weight:bold;">${text}</span>`;
+  el.innerHTML = `<span style="color:${color}">${text}</span>`;
   if (color === 'green') setTimeout(() => el.textContent = '', 8000);
 }
 
-// Website Form — accepts ANY domain (.ng, .com, etc.)
+// Website Form
 document.getElementById('websiteForm').onsubmit = async e => {
   e.preventDefault();
   showMsg('msg1', 'Connecting...', 'blue');
@@ -94,11 +93,10 @@ document.getElementById('websiteForm').onsubmit = async e => {
   const sellerName = document.getElementById('sellerName').value.trim();
   let website = document.getElementById('websiteInput').value.trim();
 
-  if (!sellerName || !website) return showMsg('msg1', 'Please fill both fields', 'red');
-  if (!website.includes('.')) return showMsg('msg1', 'Enter a valid website (e.g. mchris.ng)', 'red');
+  if (!sellerName || !website) return showMsg('msg1', 'Fill both fields', 'red');
+  if (!website.includes('.')) return showMsg('msg1', 'Enter valid website (e.g. mchris.ng)', 'red');
 
-  // Clean & fix URL
-  website = website.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').trim();
+  website = website.toLowerCase().replace(/^https?:\/\//i, '').replace(/^www\./i, '').trim();
   website = 'https://' + website.replace(/\/+$/, '');
 
   const fd = new FormData();
@@ -116,10 +114,10 @@ document.getElementById('websiteForm').onsubmit = async e => {
   }
 };
 
-// Manual Upload Form
+// Manual Form
 document.getElementById('manualForm').onsubmit = async e => {
   e.preventDefault();
-  showMsg('msg2', 'Uploading item...', 'blue');
+  showMsg('msg2', 'Uploading...', 'blue');
 
   const fd = new FormData(e.target);
   fd.append('type', 'manual');
@@ -134,7 +132,7 @@ document.getElementById('manualForm').onsubmit = async e => {
   }
 };
 
-// Check what products are in the database
+// Check products in DB
 async function checkProducts() {
   const input = prompt("Enter store name or website (e.g. mchris.ng):");
   if (!input) return;
@@ -144,13 +142,13 @@ async function checkProducts() {
     const res = await fetch(`/api/debug?q=${encodeURIComponent(input.trim())}`);
     const items = await res.json();
     if (items.length === 0) {
-      document.getElementById('debugList').innerHTML = '<span style="color:orange;">No products found yet. Wait 1–2 minutes after connecting.</span>';
+      document.getElementById('debugList').innerHTML = '<span style="color:orange;">No products yet. Wait 1–2 minutes after connecting.</span>';
     } else {
       const list = items.map(i => `• ${i.name} — ₦${Number(i.price).toLocaleString()}`).join('<br>');
       document.getElementById('debugList').innerHTML = `<span style="color:green;">Found ${items.length} products!</span><br>${list}`;
     }
   } catch (err) {
-    document.getElementById('debugList').innerHTML = '<span style="color:red;">Error checking</span>';
+    document.getElementById('debugList').innerHTML = '<span style="color:red;">Error</span>';
   }
 }
 </script>
